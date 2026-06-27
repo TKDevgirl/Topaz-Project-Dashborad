@@ -1,3 +1,5 @@
-# Topaz Smart Tracker V4 Enterprise - Phase 4
+# Topaz Smart Tracker V4 Enterprise - Phase 5 Safe
 
-This version reads the web Dashboard Summary directly from `Tracking_document.xlsx` sheet named `Dashboard`, so the table should match the Excel dashboard source.
+Fix:
+- Prevents IndexError when Dashboard sheet row labels are not detected.
+- Uses safe fallback values instead of crashing.

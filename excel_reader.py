@@ -14,85 +14,115 @@ def empty_report_df():
     return pd.DataFrame(columns=REPORT_COLUMNS)
 
 
+def safe_int(value):
+    try:
+        if value is None or value == "":
+            return 0
+        return int(float(value))
+    except Exception:
+        return 0
+
+
+def blank_dashboard_matrix():
+    return pd.DataFrame([
+        {"Status": "Total Document", "Total Document": 0, "MAT": 0, "MCR": 0, "MTS": 0, "CVI": 0},
+        {"Status": "Open", "Total Document": 0, "MAT": 0, "MCR": 0, "MTS": 0, "CVI": 0},
+        {"Status": "on progress", "Total Document": 0, "MAT": 0, "MCR": 0, "MTS": 0, "CVI": 0},
+        {"Status": "Approved", "Total Document": 0, "MAT": 0, "MCR": 0, "MTS": 0, "CVI": 0},
+    ])
+
+
 def read_dashboard_sheet(tracking_file):
-    """
-    Read summary table directly from Tracking_document.xlsx > Dashboard sheet.
-    This prevents mismatch between web summary and the source Excel Dashboard.
-    """
     wb = load_workbook(tracking_file, data_only=True)
 
     if DASHBOARD_SHEET not in wb.sheetnames:
-        return None
+        return blank_dashboard_matrix()
 
     ws = wb[DASHBOARD_SHEET]
 
-    # Find the table area by locating headers: Total Document, MAT, MCR, MTS, CVI
     header_row = None
     header_cols = {}
 
-    for row in range(1, min(ws.max_row, 30) + 1):
+    for row in range(1, min(ws.max_row, 40) + 1):
         temp = {}
         for col in range(1, ws.max_column + 1):
-            value = norm_text(ws.cell(row=row, column=col).value)
+            value = norm_upper(ws.cell(row=row, column=col).value)
             if value:
-                temp[norm_upper(value)] = col
+                temp[value] = col
 
-        if "TOTAL DOCUMENT" in temp and "MAT" in temp and "MCR" in temp:
+        if "TOTAL DOCUMENT" in temp and ("MAT" in temp or "MCR" in temp or "MTS" in temp or "CVI" in temp):
             header_row = row
             header_cols = temp
             break
 
     if not header_row:
-        return None
+        return blank_dashboard_matrix()
 
-    row_labels = {
-        "OPEN": "Open",
-        "ON PROGRESS": "on progress",
-        "SEND TO TTI": "on progress",
-        "APPROVED": "Approved",
-        "TOTAL DOCUMENT": "Total Document",
-    }
+    total_col = header_cols.get("TOTAL DOCUMENT", 1)
+    label_cols = list(range(1, total_col))
 
-    data = []
-    for row in range(header_row + 1, min(ws.max_row, header_row + 10) + 1):
-        label = norm_upper(ws.cell(row=row, column=header_cols["TOTAL DOCUMENT"] - 1).value)
+    def detect_label(row_num):
+        for col in label_cols:
+            value = norm_upper(ws.cell(row=row_num, column=col).value)
 
+            if not value:
+                continue
+
+            if "TOTAL" in value and "DOCUMENT" in value:
+                return "Total Document"
+            if "SEND TO TTI" in value or "PROGRESS" in value:
+                return "on progress"
+            if "OPEN" in value:
+                return "Open"
+            if "APPROV" in value:
+                return "Approved"
+
+        return ""
+
+    by_status = {}
+
+    for row in range(header_row + 1, min(ws.max_row, header_row + 15) + 1):
+        label = detect_label(row)
         if not label:
-            # Some files have row label in col C/D before Total Document value.
-            for col in range(1, header_cols["TOTAL DOCUMENT"]):
-                possible = norm_upper(ws.cell(row=row, column=col).value)
-                if possible in row_labels:
-                    label = possible
-                    break
-
-        if label not in row_labels:
             continue
 
-        display_label = row_labels[label]
-        item = {"Status": display_label}
+        by_status[label] = {
+            "Status": label,
+            "Total Document": safe_int(ws.cell(row=row, column=header_cols.get("TOTAL DOCUMENT", 0)).value) if header_cols.get("TOTAL DOCUMENT") else 0,
+            "MAT": safe_int(ws.cell(row=row, column=header_cols.get("MAT", 0)).value) if header_cols.get("MAT") else 0,
+            "MCR": safe_int(ws.cell(row=row, column=header_cols.get("MCR", 0)).value) if header_cols.get("MCR") else 0,
+            "MTS": safe_int(ws.cell(row=row, column=header_cols.get("MTS", 0)).value) if header_cols.get("MTS") else 0,
+            "CVI": safe_int(ws.cell(row=row, column=header_cols.get("CVI", 0)).value) if header_cols.get("CVI") else 0,
+        }
 
-        for col_name in ["TOTAL DOCUMENT", "MAT", "MCR", "MTS", "CVI"]:
-            if col_name in header_cols:
-                item[col_name.title() if col_name == "TOTAL DOCUMENT" else col_name] = ws.cell(
-                    row=row, column=header_cols[col_name]
-                ).value or 0
+    rows = []
+    for status in ["Total Document", "Open", "on progress", "Approved"]:
+        rows.append(by_status.get(status, {
+            "Status": status,
+            "Total Document": 0,
+            "MAT": 0,
+            "MCR": 0,
+            "MTS": 0,
+            "CVI": 0,
+        }))
 
-        data.append(item)
+    return pd.DataFrame(rows)
 
-    if not data:
-        return None
 
-    df = pd.DataFrame(data)
+def get_dashboard_value(matrix, status, column="Total Document"):
+    try:
+        if matrix is None or matrix.empty:
+            return 0
+        if "Status" not in matrix.columns or column not in matrix.columns:
+            return 0
 
-    # Rename exactly for clean web display
-    df = df.rename(columns={"Total Document": "Total Document"})
+        matched = matrix.loc[matrix["Status"] == status, column]
+        if matched.empty:
+            return 0
 
-    # Ensure display order from user screenshot
-    order = ["Total Document", "Open", "on progress", "Approved"]
-    df["__order"] = df["Status"].apply(lambda x: order.index(x) if x in order else 99)
-    df = df.sort_values("__order").drop(columns=["__order"])
-
-    return df
+        return safe_int(matched.iloc[0])
+    except Exception:
+        return 0
 
 
 def find_header_row_and_columns(ws):
@@ -279,15 +309,13 @@ def generate_report(tracking_file, takenaka_file):
     tracking_df = read_tracking_all(tracking_file)
     takenaka_map = read_takenaka(takenaka_file)
 
-    # Total docs should match Dashboard sheet if available
-    if dashboard_matrix is not None and not dashboard_matrix.empty:
-        total_docs = int(dashboard_matrix.loc[dashboard_matrix["Status"] == "Total Document", "Total Document"].iloc[0])
-        focus_docs = int(
-            dashboard_matrix.loc[dashboard_matrix["Status"].isin(["Open", "on progress"]), "Total Document"].sum()
-        )
-    else:
+    total_docs = get_dashboard_value(dashboard_matrix, "Total Document")
+    open_docs = get_dashboard_value(dashboard_matrix, "Open")
+    progress_docs = get_dashboard_value(dashboard_matrix, "on progress")
+    focus_docs = open_docs + progress_docs
+
+    if total_docs == 0 and not tracking_df.empty:
         total_docs = int(len(tracking_df))
-        focus_docs = int(tracking_df["Tracking State"].isin(["Open", "on progress"]).sum()) if not tracking_df.empty else 0
 
     output_wb = load_workbook(tracking_file)
     report_sheet = "Open_On_Process_Compare"
@@ -312,6 +340,7 @@ def generate_report(tracking_file, takenaka_file):
         cell.fill = PatternFill(fill_type="solid", fgColor="D9EAF7")
 
     rows = []
+
     if not tracking_df.empty:
         for _, item in tracking_df.iterrows():
             if not should_include_tracking(item["Tracking Status"], item["Info"]):
@@ -355,8 +384,8 @@ def generate_report(tracking_file, takenaka_file):
 
     return {
         "report": output,
-        "total_docs": total_docs,
-        "focus_docs": focus_docs,
+        "total_docs": int(total_docs),
+        "focus_docs": int(focus_docs),
         "df": df,
         "tracking_df": tracking_df,
         "dashboard_matrix": dashboard_matrix,

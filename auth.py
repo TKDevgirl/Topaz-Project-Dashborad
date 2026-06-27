@@ -7,10 +7,8 @@ from config import ADMIN_USERS, APP_VERSION, LOGO_PATH
 def init_auth_state():
     if "logged_in" not in st.session_state:
         st.session_state.logged_in = False
-
     if "role" not in st.session_state:
         st.session_state.role = "viewer"
-
     if "username" not in st.session_state:
         st.session_state.username = ""
 
