@@ -1,6 +1,5 @@
 import os
 import streamlit as st
-
 from config import ADMIN_USERS, APP_VERSION, LOGO_PATH
 
 
@@ -18,7 +17,7 @@ def render_sidebar():
 
     with st.sidebar:
         if os.path.exists(LOGO_PATH):
-            st.image(LOGO_PATH, width=95)
+            st.image(LOGO_PATH, width=135)
 
         st.markdown('<div class="logo">TOPAZ</div>', unsafe_allow_html=True)
         st.markdown(f'<div class="logo-sub">{APP_VERSION}</div>', unsafe_allow_html=True)

@@ -1,16 +1,30 @@
+import base64
+import os
+
 import altair as alt
 import pandas as pd
 import streamlit as st
 
+from config import LOGO_PATH
 from excel_reader import empty_report_df
 
 
+def image_to_base64(path):
+    if not os.path.exists(path):
+        return ""
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+
 def render_hero():
+    logo64 = image_to_base64(LOGO_PATH)
+    logo_html = f'<img class="hero-logo" src="data:image/png;base64,{logo64}">' if logo64 else '<div style="font-size:54px;">💎</div>'
+
     st.markdown(
-        """
+        f"""
         <div class="hero">
             <div class="hero-grid">
-                <div style="font-size:42px;">💎</div>
+                <div>{logo_html}</div>
                 <div>
                     <div class="hero-title">Topaz Smart Document Tracker</div>
                     <div class="hero-sub">TOPAZ BKK1 | ICT Document Control Dashboard</div>

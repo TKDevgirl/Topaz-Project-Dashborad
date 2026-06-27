@@ -8,15 +8,16 @@ def apply_style():
     .block-container { max-width: 1500px; padding-top: 1.2rem; }
     [data-testid="stSidebar"] { background: linear-gradient(180deg, #061124 0%, #0f172a 72%, #111827 100%); }
     [data-testid="stSidebar"] * { color: white; }
-    .logo { font-size: 30px; font-weight: 900; }
+    .logo { font-size: 32px; font-weight: 900; margin-top: 4px; }
     .logo-sub { color: #c7d2fe; font-size: 13px; margin-bottom: 20px; }
     .user-card { padding: 16px; border-radius: 18px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); margin-bottom: 18px; }
     .nav-item { padding: 10px 12px; border-radius: 12px; margin: 6px 0; background: rgba(255,255,255,.05); font-weight: 700; }
     .nav-active { padding: 10px 12px; border-radius: 12px; margin: 6px 0; background: linear-gradient(90deg,#4f46e5,#7c3aed); font-weight: 800; }
     .hero { background: linear-gradient(90deg,#071226 0%, #0b1b4d 50%, #172554 100%); color: white; border-radius: 24px; padding: 28px 32px; box-shadow: 0 20px 40px rgba(15,23,42,.20); margin-bottom: 18px; }
-    .hero-grid { display:grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center; }
-    .hero-title { font-size: 38px; font-weight: 900; margin-bottom: 6px; }
+    .hero-grid { display:grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; }
+    .hero-title { font-size: 40px; font-weight: 900; margin-bottom: 6px; }
     .hero-sub { color:#dbeafe; font-size:15px; }
+    .hero-logo { width:70px; height:70px; object-fit:contain; }
     .admin { padding: 15px 18px; border-radius: 18px; margin: 16px 0 18px 0; font-weight: 700; background: linear-gradient(90deg,#ecfdf5,#ffffff); border:1px solid #bbf7d0; color:#166534; }
     .notice { padding: 15px 18px; border-radius: 18px; margin: 16px 0 18px 0; font-weight: 700; background: linear-gradient(90deg,#eff6ff,#ffffff); border:1px solid #bfdbfe; color:#1d4ed8; }
     .kpi-card { background: white; border: 1px solid #e2e8f0; border-radius: 22px; padding: 22px; box-shadow: 0 14px 32px rgba(15,23,42,.08); min-height: 145px; position: relative; overflow:hidden; }

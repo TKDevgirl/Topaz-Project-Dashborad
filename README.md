@@ -1,6 +1,7 @@
-# Topaz Smart Tracker V5 Enterprise
+# Topaz Smart Tracker V5.1 Enterprise
 
-V5 rule:
-- KPI and Dashboard Summary are sourced from Tracking_document.xlsx > Dashboard sheet.
-- RFA/RFI are used for Open / On Progress detail table.
-- Takenaka is used only for compare action list.
+Updates:
+- Compare action uses mapping logic from Takenaka Status 1/2/3.
+- Document match uses normalized key to avoid wrong NOT FOUND.
+- Added Action Reason column for review.
+- Larger logo.

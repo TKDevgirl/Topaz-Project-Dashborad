@@ -1,6 +1,6 @@
-APP_TITLE = "Topaz Smart Tracker V5"
+APP_TITLE = "Topaz Smart Tracker V5.1"
 APP_ICON = "💎"
-APP_VERSION = "V5 Enterprise"
+APP_VERSION = "V5.1 Enterprise"
 
 ADMIN_USERS = ["admin"]
 LOGO_PATH = "assets/logo.png"
@@ -24,5 +24,6 @@ REPORT_COLUMNS = [
     "Takenaka Status 2",
     "Takenaka Status 3",
     "Action",
+    "Action Reason",
     "Checked Time",
 ]
