@@ -16,6 +16,9 @@ defaults = {
     "has_result": False,
     "report": None,
     "total_docs": 0,
+    "open_docs": 0,
+    "progress_docs": 0,
+    "approved_docs": 0,
     "focus_docs": 0,
     "dashboard_matrix": None,
     "action_counts": {},
@@ -49,6 +52,9 @@ if st.session_state.role == "admin":
         st.session_state.has_result = True
         st.session_state.report = result["report"]
         st.session_state.total_docs = result["total_docs"]
+        st.session_state.open_docs = result["open_docs"]
+        st.session_state.progress_docs = result["progress_docs"]
+        st.session_state.approved_docs = result["approved_docs"]
         st.session_state.focus_docs = result["focus_docs"]
         st.session_state.dashboard_matrix = result["dashboard_matrix"]
         st.session_state.action_counts = result["action_counts"]

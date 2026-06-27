@@ -31,13 +31,13 @@ def render_summary_matrix(matrix):
     st.markdown("</div>", unsafe_allow_html=True)
 
 
-def render_kpi_cards(total_docs, focus_docs, action_counts):
+def render_kpi_cards(total_docs, open_docs, progress_docs, approved_docs, focus_docs):
     cards = [
         ("Total Documents", total_docs, "From Dashboard sheet", "#7c3aed"),
-        ("Open / On Progress", focus_docs, "Open + on progress", "#2563eb"),
-        ("Open & On Process", action_counts.get("OPEN & ON PROCESS", 0), "Compared with Takenaka", "#16a34a"),
-        ("Need Update", action_counts.get("UPDATE TRACKING TO CLOSED", 0), "Update tracking", "#f97316"),
-        ("Overdue", action_counts.get("OVERDUE / FOLLOW UP", 0), "Follow up", "#ef4444"),
+        ("Open", open_docs, "Waiting answer", "#2563eb"),
+        ("On Progress", progress_docs, "Send to TTI", "#16a34a"),
+        ("Approved", approved_docs, "Approved documents", "#f97316"),
+        ("Open + Progress", focus_docs, "Need follow up", "#ef4444"),
     ]
 
     columns = st.columns(5)
@@ -47,7 +47,7 @@ def render_kpi_cards(total_docs, focus_docs, action_counts):
 
 
 def render_action_summary(action_counts):
-    st.markdown('<div class="panel"><div class="panel-title">📊 Action Summary</div>', unsafe_allow_html=True)
+    st.markdown('<div class="panel"><div class="panel-title">📊 Takenaka Compare Action Summary</div>', unsafe_allow_html=True)
     summary_df = pd.DataFrame([{"Action": key, "Count": value} for key, value in action_counts.items()])
     if not summary_df.empty:
         chart = alt.Chart(summary_df).mark_bar(cornerRadiusTopLeft=8, cornerRadiusTopRight=8).encode(
@@ -83,7 +83,7 @@ def render_document_table(df, report):
     if "Action" not in df.columns:
         df["Action"] = ""
 
-    st.markdown('<div class="panel"><div class="panel-title">📋 Document Action List</div>', unsafe_allow_html=True)
+    st.markdown('<div class="panel"><div class="panel-title">📋 Open / On Progress Action List</div>', unsafe_allow_html=True)
 
     filter_col, search_col, export_col = st.columns([1, 2, 0.8])
     actions = sorted([item for item in df["Action"].fillna("").astype(str).unique().tolist() if item])
@@ -130,11 +130,13 @@ def render_dashboard():
 
     render_kpi_cards(
         total_docs=st.session_state.get("total_docs", 0),
+        open_docs=st.session_state.get("open_docs", 0),
+        progress_docs=st.session_state.get("progress_docs", 0),
+        approved_docs=st.session_state.get("approved_docs", 0),
         focus_docs=st.session_state.get("focus_docs", 0),
-        action_counts=action_counts,
     )
-    st.write("")
 
+    st.write("")
     render_summary_matrix(matrix)
 
     chart_col, quick_col = st.columns([2, 1])

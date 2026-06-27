@@ -6,6 +6,15 @@ def norm_upper(value):
     return norm_text(value).upper()
 
 
+def safe_int(value):
+    try:
+        if value is None or value == "":
+            return 0
+        return int(float(value))
+    except Exception:
+        return 0
+
+
 def base_doc_no(doc_no):
     doc_no = norm_text(doc_no)
     parts = doc_no.split("-")

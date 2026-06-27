@@ -1,6 +1,6 @@
-APP_TITLE = "Topaz Smart Tracker V4"
+APP_TITLE = "Topaz Smart Tracker V5"
 APP_ICON = "💎"
-APP_VERSION = "V4 Enterprise - Phase 5 Safe"
+APP_VERSION = "V5 Enterprise"
 
 ADMIN_USERS = ["admin"]
 LOGO_PATH = "assets/logo.png"
@@ -8,6 +8,8 @@ LOGO_PATH = "assets/logo.png"
 DASHBOARD_SHEET = "Dashboard"
 TRACKING_SHEETS = ["RFA", "RFI"]
 TAKENAKA_SHEETS = ["MAT_ICT", "DWG_ICT", "MTS_ICT"]
+
+SUMMARY_COLUMNS = ["Status", "Total Document", "MAT", "MCR", "MTS", "CVI"]
 
 REPORT_COLUMNS = [
     "Tracking Sheet",
