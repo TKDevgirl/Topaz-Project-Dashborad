@@ -6,11 +6,7 @@ from dashboard import render_dashboard, render_hero
 from excel_reader import empty_report_df, generate_report
 from style import apply_style
 
-st.set_page_config(
-    page_title=APP_TITLE,
-    page_icon=APP_ICON,
-    layout="wide",
-)
+st.set_page_config(page_title=APP_TITLE, page_icon=APP_ICON, layout="wide")
 
 apply_style()
 render_sidebar()
@@ -33,19 +29,13 @@ for key, value in defaults.items():
 render_hero()
 
 if st.session_state.role == "admin":
-    st.markdown(
-        '<div class="admin">👩‍💼 Admin mode: Admin can upload files and generate dashboard.</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown('<div class="admin">👩‍💼 Admin mode: Admin can upload files and generate dashboard.</div>', unsafe_allow_html=True)
 
     upload_col_1, upload_col_2, button_col = st.columns([1, 1, 0.8])
-
     with upload_col_1:
         tracking_file = st.file_uploader("1) Upload Tracking_document.xlsx", type=["xlsx"])
-
     with upload_col_2:
         takenaka_file = st.file_uploader("2) Upload Takenaka Summary.xlsx", type=["xlsx"])
-
     with button_col:
         st.write("")
         st.write("")
@@ -63,13 +53,8 @@ if st.session_state.role == "admin":
         st.session_state.dashboard_matrix = result["dashboard_matrix"]
         st.session_state.action_counts = result["action_counts"]
         st.session_state.last_updated = result["last_updated"]
-
         st.rerun()
-
 else:
-    st.markdown(
-        '<div class="notice">ℹ️ Viewer mode: only Admin can upload files and generate dashboard.</div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown('<div class="notice">ℹ️ Viewer mode: only Admin can upload files and generate dashboard.</div>', unsafe_allow_html=True)
 
 render_dashboard()

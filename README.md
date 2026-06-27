@@ -1,14 +1,3 @@
-# Topaz Smart Tracker V4 Enterprise - Phase 3
+# Topaz Smart Tracker V4 Enterprise - Phase 4
 
-Updates:
-- Added ByteBridge logo support in assets/logo.png
-- Removed Pavinee display name from sidebar/viewer message
-- Added Dashboard Summary table:
-  - Total Document
-  - MAT
-  - MCR
-  - MTS
-  - CVI
-  - Open
-  - on progress
-  - Approved
+This version reads the web Dashboard Summary directly from `Tracking_document.xlsx` sheet named `Dashboard`, so the table should match the Excel dashboard source.

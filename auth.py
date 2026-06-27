@@ -27,24 +27,14 @@ def render_sidebar():
 
         if not st.session_state.logged_in:
             username = st.text_input("Username")
-
             if st.button("Login", use_container_width=True):
                 clean_username = username.strip() or "viewer"
                 st.session_state.username = clean_username
                 st.session_state.role = "admin" if clean_username.lower() in ADMIN_USERS else "viewer"
                 st.session_state.logged_in = True
                 st.rerun()
-
         else:
-            st.markdown(
-                f"""
-                <div class="user-card">
-                    <b>🔑 Role</b><br>{st.session_state.role.title()}
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
+            st.markdown(f"""<div class="user-card"><b>🔑 Role</b><br>{st.session_state.role.title()}</div>""", unsafe_allow_html=True)
             if st.button("Logout", use_container_width=True):
                 st.session_state.logged_in = False
                 st.session_state.role = "viewer"

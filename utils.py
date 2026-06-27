@@ -35,8 +35,7 @@ def extract_category(doc_no, fallback=""):
     fallback_text = norm_upper(fallback)
 
     for category in ["MAT", "MCR", "MTS", "CVI", "DWG", "SCH"]:
-        token = f"-{category}-"
-        if token in text:
+        if f"-{category}-" in text:
             return category
         if category == fallback_text:
             return category
