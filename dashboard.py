@@ -1,25 +1,43 @@
+import os
+
 import altair as alt
 import pandas as pd
 import streamlit as st
 
+from config import LOGO_PATH
 from excel_reader import empty_report_df
 
 
 def render_hero():
+    logo_html = ""
+    if os.path.exists(LOGO_PATH):
+        logo_html = '<div class="hero-logo">💎</div>'
+
     st.markdown(
-        """
+        f"""
         <div class="hero">
-            <div class="hero-title">💎 Topaz Smart Document Tracker</div>
-            <div class="hero-sub">TOPAZ BKK1 | ICT Document Control Dashboard</div>
+            <div class="hero-grid">
+                <div style="font-size:42px;">💎</div>
+                <div>
+                    <div class="hero-title">Topaz Smart Document Tracker</div>
+                    <div class="hero-sub">TOPAZ BKK1 | ICT Document Control Dashboard</div>
+                </div>
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
 
+def render_summary_matrix(matrix):
+    st.markdown('<div class="panel"><div class="panel-title">📌 Dashboard Summary</div>', unsafe_allow_html=True)
+    st.dataframe(matrix, use_container_width=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
 def render_kpi_cards(total_docs, focus_docs, action_counts):
     cards = [
-        ("Total Documents", total_docs, "All DETH-NSC documents", "#7c3aed"),
+        ("Total Documents", total_docs, "All documents", "#7c3aed"),
         ("Open / On Progress", focus_docs, "Require review", "#2563eb"),
         ("Open & On Process", action_counts.get("OPEN & ON PROCESS", 0), "Waiting review", "#16a34a"),
         ("Need Update", action_counts.get("UPDATE TRACKING TO CLOSED", 0), "Update tracking", "#f97316"),
@@ -142,6 +160,7 @@ def render_dashboard():
         return
 
     df = st.session_state.get("result_df", empty_report_df())
+    matrix = st.session_state.get("dashboard_matrix")
     action_counts = st.session_state.get("action_counts", {})
     report = st.session_state.get("report")
 
@@ -154,6 +173,9 @@ def render_dashboard():
     )
 
     st.write("")
+
+    if matrix is not None:
+        render_summary_matrix(matrix)
 
     chart_col, quick_col = st.columns([2, 1])
 

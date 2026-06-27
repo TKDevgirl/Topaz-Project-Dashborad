@@ -28,3 +28,17 @@ def normalize_header(value):
 
 def contains_doc_no(value):
     return "DETH-NSC" in norm_upper(value)
+
+
+def extract_category(doc_no, fallback=""):
+    text = norm_upper(doc_no)
+    fallback_text = norm_upper(fallback)
+
+    for category in ["MAT", "MCR", "MTS", "CVI", "DWG", "SCH"]:
+        token = f"-{category}-"
+        if token in text:
+            return category
+        if category == fallback_text:
+            return category
+
+    return fallback_text or "OTHER"

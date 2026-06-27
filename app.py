@@ -21,6 +21,7 @@ defaults = {
     "report": None,
     "total_docs": 0,
     "focus_docs": 0,
+    "dashboard_matrix": None,
     "action_counts": {},
     "last_updated": None,
 }
@@ -33,7 +34,7 @@ render_hero()
 
 if st.session_state.role == "admin":
     st.markdown(
-        '<div class="admin">👩‍💼 Admin mode: Pavinee can upload files and generate dashboard.</div>',
+        '<div class="admin">👩‍💼 Admin mode: Admin can upload files and generate dashboard.</div>',
         unsafe_allow_html=True,
     )
 
@@ -59,6 +60,7 @@ if st.session_state.role == "admin":
         st.session_state.report = result["report"]
         st.session_state.total_docs = result["total_docs"]
         st.session_state.focus_docs = result["focus_docs"]
+        st.session_state.dashboard_matrix = result["dashboard_matrix"]
         st.session_state.action_counts = result["action_counts"]
         st.session_state.last_updated = result["last_updated"]
 
@@ -66,7 +68,7 @@ if st.session_state.role == "admin":
 
 else:
     st.markdown(
-        '<div class="notice">ℹ️ Viewer mode: only Pavinee can upload files and generate dashboard.</div>',
+        '<div class="notice">ℹ️ Viewer mode: only Admin can upload files and generate dashboard.</div>',
         unsafe_allow_html=True,
     )
 

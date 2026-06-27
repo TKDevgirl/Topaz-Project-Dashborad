@@ -1,18 +1,30 @@
 from utils import norm_upper
 
 
-def should_include_tracking(status, info):
+def normalize_tracking_state(status, info):
     status_text = norm_upper(status)
     info_text = norm_upper(info)
 
-    return (
-        "OPEN" in status_text
-        or "ON PROGRESS" in status_text
-        or "ON PROCESS" in status_text
-        or "ON PROGRESS" in info_text
-        or "ON PROCESS" in info_text
-        or "TTI TO CB" in info_text
-    )
+    if "CLOSE" in status_text or "APPROVED" in status_text or "APPROVE" in status_text:
+        return "Approved"
+
+    if "ON PROGRESS" in status_text or "ON PROCESS" in status_text:
+        return "on progress"
+
+    if "ON PROGRESS" in info_text or "ON PROCESS" in info_text:
+        return "on progress"
+
+    if "OPEN" in status_text:
+        return "Open"
+
+    if "TTI TO CB" in info_text:
+        return "Open"
+
+    return "Other"
+
+
+def should_include_tracking(status, info):
+    return normalize_tracking_state(status, info) in ["Open", "on progress"]
 
 
 def classify_action(takenaka_record):
