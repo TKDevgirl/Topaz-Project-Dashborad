@@ -11,6 +11,7 @@ def should_include_tracking(status, info):
         or "ON PROCESS" in status_text
         or "ON PROGRESS" in info_text
         or "ON PROCESS" in info_text
+        or "TTI TO CB" in info_text
     )
 
 

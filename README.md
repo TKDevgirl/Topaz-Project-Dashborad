@@ -1,28 +1,11 @@
-# Topaz Smart Tracker V4 Enterprise - Phase 1
+# Topaz Smart Tracker V4 Enterprise - Phase 2
 
-## Files
-
-- app.py
-- auth.py
-- compare.py
-- config.py
-- dashboard.py
-- excel_reader.py
-- style.py
-- utils.py
-- requirements.txt
+This version has a robust Excel reader that scans for DETH-NSC document numbers even if the column layout changes.
 
 ## Login
 
-- Username `pavinee` = Admin
+- `pavinee` = Admin
 - Any other username = Viewer
-
-## Run locally
-
-```bash
-pip install -r requirements.txt
-streamlit run app.py
-```
 
 ## Streamlit Cloud
 

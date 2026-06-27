@@ -24,3 +24,7 @@ def normalize_header(value):
         .strip()
         .upper()
     )
+
+
+def contains_doc_no(value):
+    return "DETH-NSC" in norm_upper(value)

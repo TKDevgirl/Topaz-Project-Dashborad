@@ -45,9 +45,7 @@ def render_kpi_cards(total_docs, focus_docs, action_counts):
 def render_action_summary(action_counts):
     st.markdown('<div class="panel"><div class="panel-title">📊 Action Summary</div>', unsafe_allow_html=True)
 
-    summary_df = pd.DataFrame(
-        [{"Action": key, "Count": value} for key, value in action_counts.items()]
-    )
+    summary_df = pd.DataFrame([{"Action": key, "Count": value} for key, value in action_counts.items()])
 
     if not summary_df.empty:
         chart = (
@@ -63,7 +61,6 @@ def render_action_summary(action_counts):
 
         st.altair_chart(chart, use_container_width=True)
         st.dataframe(summary_df, use_container_width=True, hide_index=True)
-
     else:
         st.info("No action data found.")
 
@@ -102,9 +99,7 @@ def render_document_table(df, report):
 
     filter_col, search_col, export_col = st.columns([1, 2, 0.8])
 
-    actions = sorted(
-        [item for item in df["Action"].fillna("").astype(str).unique().tolist() if item]
-    )
+    actions = sorted([item for item in df["Action"].fillna("").astype(str).unique().tolist() if item])
 
     with filter_col:
         selected_action = st.selectbox("Filter by Action", ["All"] + actions)
@@ -138,7 +133,6 @@ def render_document_table(df, report):
         ]
 
     st.dataframe(filtered_df, use_container_width=True, height=480)
-
     st.markdown("</div>", unsafe_allow_html=True)
 
 

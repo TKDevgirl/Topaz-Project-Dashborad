@@ -1,6 +1,6 @@
 APP_TITLE = "Topaz Smart Tracker V4"
 APP_ICON = "💎"
-APP_VERSION = "V4 Enterprise - Phase 1"
+APP_VERSION = "V4 Enterprise - Phase 2"
 
 ADMIN_USERS = ["pavinee"]
 

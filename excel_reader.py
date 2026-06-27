@@ -7,7 +7,29 @@ from openpyxl.styles import Font, PatternFill
 
 from config import REPORT_COLUMNS, TAKENAKA_SHEETS, TRACKING_SHEETS
 from compare import classify_action, should_include_tracking
-from utils import base_doc_no, normalize_header
+from utils import base_doc_no, contains_doc_no, norm_text, norm_upper, normalize_header
+
+
+STATUS_WORDS = [
+    "OPEN",
+    "CLOSE",
+    "CLOSED",
+    "RETURNED",
+    "ON PROGRESS",
+    "ON PROCESS",
+    "APPROVE",
+    "APPROVED",
+]
+
+INFO_WORDS = [
+    "REVISED AND RESUBMIT",
+    "REVISE AND RESUBMIT",
+    "TTI TO CB",
+    "NA",
+    "NO OBJECTION",
+    "APPROVE",
+    "ANSWERED",
+]
 
 
 def empty_report_df():
@@ -15,42 +37,111 @@ def empty_report_df():
 
 
 def find_header_row_and_columns(ws):
+    """
+    Try to detect header row. If the file layout changes, we still scan the row
+    for DETH-NSC document numbers later.
+    """
+    best_row = 1
+    best_headers = {}
+
     for row in range(1, 30):
         headers = {}
-
         for col in range(1, ws.max_column + 1):
             value = ws.cell(row=row, column=col).value
-
             if value:
                 headers[normalize_header(value)] = col
+
+        score = 0
+        for key in headers:
+            if "DOCUMENT" in key:
+                score += 2
+            if key in ["STATUS", "INFO", "VERSION"]:
+                score += 2
+            if "NAME" in key or "DESCRIPTION" in key:
+                score += 1
+
+        if score > len(best_headers):
+            best_row = row
+            best_headers = headers
 
         if "STATUS" in headers and "INFO" in headers:
             return row, headers
 
-    # Fallback for current Tracking_document.xlsx layout
-    return 1, {
-        "DOCUMENT NO": 2,
-        "DOCUMENT NAME": 4,
-        "STATUS": 5,
-        "INFO": 6,
-    }
+    return best_row, best_headers
 
 
 def get_col(headers, possible_names):
     for name in possible_names:
         key = normalize_header(name)
-
         if key in headers:
             return headers[key]
 
     for key, col in headers.items():
         for name in possible_names:
             name_key = normalize_header(name)
-
             if name_key in key or key in name_key:
                 return col
 
     return None
+
+
+def find_doc_no_in_row(ws, row):
+    for col in range(1, ws.max_column + 1):
+        value = ws.cell(row=row, column=col).value
+        if contains_doc_no(value):
+            return value, col
+    return None, None
+
+
+def guess_status_from_row(ws, row, status_col=None):
+    if status_col:
+        value = ws.cell(row=row, column=status_col).value
+        if norm_text(value):
+            return value
+
+    for col in range(1, ws.max_column + 1):
+        value = norm_upper(ws.cell(row=row, column=col).value)
+        if value in ["OPEN", "CLOSE", "CLOSED", "RETURNED", "ON PROGRESS", "ON PROCESS"]:
+            return ws.cell(row=row, column=col).value
+
+    return ""
+
+
+def guess_info_from_row(ws, row, info_col=None):
+    if info_col:
+        value = ws.cell(row=row, column=info_col).value
+        if norm_text(value):
+            return value
+
+    for col in range(1, ws.max_column + 1):
+        value = norm_upper(ws.cell(row=row, column=col).value)
+        if any(word in value for word in INFO_WORDS):
+            return ws.cell(row=row, column=col).value
+
+    return ""
+
+
+def guess_doc_name(ws, row, doc_no_col, doc_name_col=None):
+    if doc_name_col:
+        value = ws.cell(row=row, column=doc_name_col).value
+        if norm_text(value):
+            return value
+
+    # Common layout: document name is often 1-2 columns after doc no
+    for col in range(doc_no_col + 1, min(ws.max_column, doc_no_col + 4) + 1):
+        value = ws.cell(row=row, column=col).value
+        text = norm_text(value)
+        if text and "DETH-NSC" not in text and text.upper() not in STATUS_WORDS:
+            return value
+
+    # fallback: look for long text in same row
+    for col in range(1, ws.max_column + 1):
+        value = ws.cell(row=row, column=col).value
+        text = norm_text(value)
+        if len(text) > 10 and "DETH-NSC" not in text:
+            return value
+
+    return ""
 
 
 def read_takenaka(takenaka_file):
@@ -63,8 +154,13 @@ def read_takenaka(takenaka_file):
 
         ws = workbook[sheet]
 
-        for row in range(11, ws.max_row + 1):
+        # Takenaka source: document no usually in E, statuses AA/AB/AC
+        # But we also scan row for DETH-NSC as fallback.
+        for row in range(1, ws.max_row + 1):
             doc_no = ws[f"E{row}"].value
+
+            if not doc_no or "DETH-NSC" not in str(doc_no):
+                doc_no, _ = find_doc_no_in_row(ws, row)
 
             if not doc_no or "DETH-NSC" not in str(doc_no):
                 continue
@@ -83,10 +179,7 @@ def read_takenaka(takenaka_file):
 def generate_report(tracking_file, takenaka_file):
     takenaka_map = read_takenaka(takenaka_file)
 
-    # data_only workbook for reading formulas/values
     read_wb = load_workbook(tracking_file, data_only=True)
-
-    # normal workbook for export report sheet
     output_wb = load_workbook(tracking_file)
 
     report_sheet = "Open_On_Process_Compare"
@@ -114,6 +207,7 @@ def generate_report(tracking_file, takenaka_file):
     rows = []
     total_docs = 0
     focus_docs = 0
+    seen_docs = set()
 
     for sheet in TRACKING_SHEETS:
         if sheet not in read_wb.sheetnames:
@@ -128,26 +222,36 @@ def generate_report(tracking_file, takenaka_file):
         status_col = get_col(headers, ["Status"])
         info_col = get_col(headers, ["Info"])
 
-        if not doc_no_col or not status_col or not info_col:
-            continue
-
         for row in range(header_row + 1, ws.max_row + 1):
-            doc_no = ws.cell(row=row, column=doc_no_col).value
-            doc_name = ws.cell(row=row, column=doc_name_col).value if doc_name_col else ""
-            tracking_status = ws.cell(row=row, column=status_col).value
-            info = ws.cell(row=row, column=info_col).value
+            doc_no = ws.cell(row=row, column=doc_no_col).value if doc_no_col else None
+            doc_no_source_col = doc_no_col
+
+            if not doc_no or "DETH-NSC" not in str(doc_no):
+                doc_no, doc_no_source_col = find_doc_no_in_row(ws, row)
 
             if not doc_no or "DETH-NSC" not in str(doc_no):
                 continue
 
+            base_key = base_doc_no(doc_no)
+
+            # Prevent duplicate rows when sheets contain repeated version rows
+            unique_key = (sheet, base_key, row)
+            if unique_key in seen_docs:
+                continue
+            seen_docs.add(unique_key)
+
             total_docs += 1
+
+            doc_name = guess_doc_name(ws, row, doc_no_source_col or 1, doc_name_col)
+            tracking_status = guess_status_from_row(ws, row, status_col)
+            info = guess_info_from_row(ws, row, info_col)
 
             if not should_include_tracking(tracking_status, info):
                 continue
 
             focus_docs += 1
 
-            source = takenaka_map.get(base_doc_no(doc_no))
+            source = takenaka_map.get(base_key)
             action = classify_action(source)
             checked_time = datetime.now().strftime("%d-%b-%Y %H:%M:%S")
 
@@ -184,7 +288,6 @@ def generate_report(tracking_file, takenaka_file):
 
             report_ws.append(row_data)
             report_ws[f"K{report_ws.max_row}"].fill = fills.get(action, fills["CHECK"])
-
             rows.append(dict(zip(REPORT_COLUMNS, row_data)))
 
     for col in report_ws.columns:
